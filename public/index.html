@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Othello Game</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #e0e0e0;
+      }
+      #player-info, #current-player {
+        margin-bottom: 10px;
+      }
+      #board {
+        display: grid;
+        grid-template-columns: repeat(8, 50px);
+        grid-template-rows: repeat(8, 50px);
+        background-color: green;
+        border: 1px solid black;
+      }
+      .cell {
+        width: 50px;
+        height: 50px;
+        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .B {
+        background-color: black;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+      }
+      .W {
+        background-color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="player-info"></div>
+    <div id="current-player"></div>
+    <div id="board"></div>
+    <script>
+      const socket = io();
+      const boardElement = document.getElementById('board');
+      const playerInfoElement = document.getElementById('player-info');
+      const currentPlayerElement = document.getElementById('current-player');
+
+      let player = null;
+
+      socket.on('player', (assignedPlayer) => {
+        player = assignedPlayer;
+        playerInfoElement.innerText = `You are Player: ${player}`;
+      });
+
+      socket.on('board', (board) => {
+        boardElement.innerHTML = '';
+        board.forEach((row, x) => {
+          row.forEach((cell, y) => {
+            const cellElement = document.createElement('div');
+            cellElement.classList.add('cell');
+            cellElement.addEventListener('click', () => {
+              socket.emit('move', { x, y });
+            });
+            if (cell) {
+              const piece = document.createElement('div');
+              piece.classList.add(cell);
+              cellElement.appendChild(piece);
+            }
+            boardElement.appendChild(cellElement);
+          });
+        });
+      });
+
+      socket.on('currentPlayer', (currentPlayer) => {
+        currentPlayerElement.innerText = `Current Player: ${currentPlayer}`;
+      });
+    </script>
+  </body>
+</html>
